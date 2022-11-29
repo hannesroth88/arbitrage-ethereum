@@ -1,0 +1,9 @@
+version: '2.0'
+services:
+  mongo_arb:
+    image: 'mongo:4.0.28-xenial'
+    container_name: 'mongo_arb'
+    volumes:
+      - ./data:/data/db
+    ports:
+      - 27018:27017

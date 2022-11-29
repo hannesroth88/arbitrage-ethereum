@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { FlashbotsBundleProvider } from "@flashbots/ethers-provider-bundle";
 import { Contract, providers, Wallet } from "ethers";
 import { BUNDLE_EXECUTOR_ABI } from "./abi";
@@ -7,27 +8,30 @@ import { Arbitrage, CrossedMarketDetails } from "./Arbitrage";
 import { get } from "https"
 import { getDefaultRelaySigningKey } from "./utils";
 import UniswappyV2PairDAO from "./models/UniswappyV2Pair";
+import * as dotenv from 'dotenv' // see https://github.com/motdotla/dotenv#how-do-i-use-dotenv-with-import
+dotenv.config()
 
-const ETHEREUM_RPC_URL = process.env.ETHEREUM_RPC_URL || "http://127.0.0.1:8545"
-const PRIVATE_KEY = process.env.PRIVATE_KEY || getDefaultRelaySigningKey()
+const ETHEREUM_RPC_URL = process.env.ETHEREUM_RPC_URL as string
+
+const PRIVATE_KEY = process.env.PRIVATE_KEY as string
 
 // No clue what this address points to.
-const BUNDLE_EXECUTOR_ADDRESS = process.env.BUNDLE_EXECUTOR_ADDRESS || "0xc35D77d25d81be78Ad60Ce14FEA7c92D438782E3";
+const BUNDLE_EXECUTOR_ADDRESS = process.env.BUNDLE_EXECUTOR_ADDRESS as string;
 
-const FLASHBOTS_RELAY_SIGNING_KEY = process.env.FLASHBOTS_RELAY_SIGNING_KEY || getDefaultRelaySigningKey();
+const FLASHBOTS_RELAY_SIGNING_KEY = process.env.FLASHBOTS_RELAY_SIGNING_KEY as string;
 
 const MINER_REWARD_PERCENTAGE = parseInt(process.env.MINER_REWARD_PERCENTAGE || "90")
 
-if (PRIVATE_KEY === "") {
+if (!PRIVATE_KEY) {
   console.warn("Must provide PRIVATE_KEY environment variable")
   process.exit(1)
 }
-if (BUNDLE_EXECUTOR_ADDRESS === "") {
+if (!BUNDLE_EXECUTOR_ADDRESS) {
   console.warn("Must provide BUNDLE_EXECUTOR_ADDRESS environment variable. Please see README.md")
   process.exit(1)
 }
 
-if (FLASHBOTS_RELAY_SIGNING_KEY === "") {
+if (!FLASHBOTS_RELAY_SIGNING_KEY) {
   console.warn("Must provide FLASHBOTS_RELAY_SIGNING_KEY. Please see https://github.com/flashbots/pm/blob/main/guides/searcher-onboarding.md")
   process.exit(1)
 }
@@ -63,11 +67,12 @@ async function main() {
    *  
    *    I recommend using a Moralis SpeedyNode, which has a 50x higher request limit than Infura for free accounts.
    */
-  
-  // await UniswappyV2EthPair.getUniswapMarketsByToken(provider, FACTORY_ADDRESSES);
+  await UniswappyV2EthPair.getUniswapMarketsByToken(provider, FACTORY_ADDRESSES);
+
   
   // Initialize Our Markets
   const allPairs = await UniswappyV2PairDAO.getAllWETHPairAddresses();
+  
   const markets = await UniswappyV2EthPair.mapReduceUniswapMarketsByToken(provider, allPairs);
 
   console.log(`Found ${Object.keys(markets.marketsByToken).length} token across ${markets.filteredMarketPairs.length} pools with sufficient liquidity to Arb.\n\n\n`)
@@ -92,11 +97,11 @@ async function main() {
     }
 
     // Create and send bundles to FLASHBOTS
-    return await arbitrage.takeCrossedMarkets(bestCrossedMarkets, blockNumber, MINER_REWARD_PERCENTAGE).then(() => {
+/*     return await arbitrage.takeCrossedMarkets(bestCrossedMarkets, blockNumber, MINER_REWARD_PERCENTAGE).then(() => {
       healthcheck();
       // console.log(`Block number: ${blockNumber}, Took crossed markets: ${((new Date()).getTime() - now.getTime())/1000}`)
       return;
-    }).catch(console.error)
+    }).catch(console.error) */
   })
 }
 

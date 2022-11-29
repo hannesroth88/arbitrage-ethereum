@@ -1,13 +1,13 @@
 import mongoose from 'mongoose';
+import * as dotenv from 'dotenv' // see https://github.com/motdotla/dotenv#how-do-i-use-dotenv-with-import
+dotenv.config()
 
 class MongooseService {
   private count = 0;
   private mongooseOptions = {
       useNewUrlParser: true,
       useUnifiedTopology: true,
-      serverSelectionTimeoutMS: 5000,
-      useFindAndModify: false,
-  };
+      serverSelectionTimeoutMS: 5000  };
 
   constructor() {
       this.connectWithRetry();
@@ -18,9 +18,11 @@ class MongooseService {
   }
 
   connectWithRetry = () => {
+      console.log(process.env.MONGO_DB);
+      
       console.log('Attempting MongoDB connection (will retry if needed)');
       mongoose
-          .connect('mongodb://mongo_arb/arb', this.mongooseOptions)
+          .connect(process.env.MONGO_DB as string, this.mongooseOptions)
           .then(() => {
               console.log('MongoDB is connected');
           })

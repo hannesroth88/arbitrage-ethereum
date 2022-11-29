@@ -1,4 +1,4 @@
-import mongooseService from '../clients/mongoose';
+import mongooseService from "../clients/mongoose";
 
 interface CreateTokenDTO {
   sym?: string;
@@ -11,16 +11,19 @@ interface CreateTokenDTO {
 class Token {
   Schema = mongooseService.getMongoose().Schema;
 
-  tokenSchema = new this.Schema({
-    _id: String,
-    address: String,
-    name: String,
-    sym: String,
-    decimals: Number,
-    blacklisted: Boolean
-  }, { id: false })
+  tokenSchema = new this.Schema(
+    {
+      _id: String,
+      address: String,
+      name: String,
+      sym: String,
+      decimals: Number,
+      blacklisted: Boolean,
+    },
+    { id: false }
+  );
 
-  Token = mongooseService.getMongoose().model('Tokens', this.tokenSchema);
+  Token = mongooseService.getMongoose().model("Tokens", this.tokenSchema);
 
   constructor() {
     // console.log('PairAtBlock constructor');
@@ -28,15 +31,21 @@ class Token {
 
   async addToken(fields: CreateTokenDTO) {
     const pairAtBlock = new this.Token({
-        _id: fields.address,
-        ...fields
+      _id: fields.address,
+      ...fields,
     });
-    await pairAtBlock.save();
+    // only save if token is not in DB
+    try {
+      await pairAtBlock.save();
+    } catch (error) {
+      console.log(error);
+    }
+
     return fields.address;
   }
 
   async getToken(address: string) {
-    return this.Token.findOne({ _id: address }).populate('Tokens').exec();
+    return this.Token.findOne({ _id: address }).exec();
   }
 }
 

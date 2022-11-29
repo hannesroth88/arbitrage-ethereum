@@ -34,7 +34,7 @@ class PairAtBlockModel {
   }
 
   async batchAddPairsAtBlocks(docs: Array<CreatePairAtBlockDTO>) {
-    await this.PairAtBlock.insertMany(docs);
+    await this.PairAtBlock.insertMany(docs, {ordered: false});
   }
 
   async addPairAtBlock(fields: CreatePairAtBlockDTO) {
@@ -47,7 +47,7 @@ class PairAtBlockModel {
   }
 
   async getPairAtBlock(marketAddress: string, blockNumber: number) {
-    return this.PairAtBlock.findOne({ _id: `${blockNumber}-${marketAddress}` }).populate('PairAtBlock').exec();
+    return this.PairAtBlock.findOne({ _id: `${blockNumber}-${marketAddress}` }).exec();
   }
 }
 

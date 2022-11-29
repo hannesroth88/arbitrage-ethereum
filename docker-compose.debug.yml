@@ -16,6 +16,8 @@ services:
     volumes:
       - /usr/src/app/arb/node_modules
       - ./:/usr/src/app/arb
+    ports:
+      - 9229:9229
     environment:
        NODE_ENV: development
     depends_on:
