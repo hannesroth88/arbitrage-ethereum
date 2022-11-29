@@ -130,3 +130,6 @@ $ npm install
 $ docker-compose up --build
 ```
 
+Debugging
+======================
+Visual Stuidio Code, just press F5 (Debug Program)

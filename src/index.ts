@@ -67,7 +67,7 @@ async function main() {
    *  
    *    I recommend using a Moralis SpeedyNode, which has a 50x higher request limit than Infura for free accounts.
    */
-  await UniswappyV2EthPair.getUniswapMarketsByToken(provider, FACTORY_ADDRESSES);
+  //await UniswappyV2EthPair.getUniswapMarketsByToken(provider, FACTORY_ADDRESSES);
 
   
   // Initialize Our Markets

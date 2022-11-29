@@ -7,7 +7,7 @@
   "scripts": {
     "start": "npx ts-node --project tsconfig.json src/index.ts",
     "start:inspect": "nodemon --exec \"node --require ts-node/register --inspect=9229 src/index.ts\"",
-    "debug": "docker compose -f docker-compose-onlydb.yml up && npm run start",
+    "debug": "npm run build && docker compose -f docker-compose-onlydb.yml up -d",
     "test": "npx ts-node node_modules/jasmine/bin/jasmine --config=jasmine.json",
     "build": "npx tsc",
     "lint": "npx eslint src"
