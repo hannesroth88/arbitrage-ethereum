@@ -15,7 +15,6 @@ const ETHEREUM_RPC_URL = process.env.ETHEREUM_RPC_URL as string
 
 const PRIVATE_KEY = process.env.PRIVATE_KEY as string
 
-// No clue what this address points to.
 const BUNDLE_EXECUTOR_ADDRESS = process.env.BUNDLE_EXECUTOR_ADDRESS as string;
 
 const FLASHBOTS_RELAY_SIGNING_KEY = process.env.FLASHBOTS_RELAY_SIGNING_KEY as string;
@@ -44,7 +43,7 @@ const arbitrageSigningWallet = new Wallet(PRIVATE_KEY);
 const flashbotsRelaySigningWallet = new Wallet(FLASHBOTS_RELAY_SIGNING_KEY);
 
 function healthcheck() {
-  if (HEALTHCHECK_URL === "") {
+  if (!HEALTHCHECK_URL) {
     return
   }
   get(HEALTHCHECK_URL).on('error', console.error);
@@ -97,11 +96,11 @@ async function main() {
     }
 
     // Create and send bundles to FLASHBOTS
-/*     return await arbitrage.takeCrossedMarkets(bestCrossedMarkets, blockNumber, MINER_REWARD_PERCENTAGE).then(() => {
+    return await arbitrage.takeCrossedMarkets(bestCrossedMarkets, blockNumber, MINER_REWARD_PERCENTAGE).then(() => {
       healthcheck();
       // console.log(`Block number: ${blockNumber}, Took crossed markets: ${((new Date()).getTime() - now.getTime())/1000}`)
       return;
-    }).catch(console.error) */
+    }).catch(console.error)
   })
 }
 
