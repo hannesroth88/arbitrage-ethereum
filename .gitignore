@@ -6,3 +6,4 @@ Dockerfile
 /build
 /tsconfig.tsbuildinfo
 /data
+.DS_Store
