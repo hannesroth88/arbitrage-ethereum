@@ -1,6 +1,13 @@
-import { WETH_ADDRESS } from "../addresses";
+import { WETH_ADDRESS, WETH_ADDRESS_GOERLI } from "../addresses";
 import mongooseService from "../clients/mongoose";
 import { UniswappyV2EthPair } from "../UniswappyV2EthPair";
+
+let WETH_ADDRESS_FINAL: string;
+if (process.env.NODE_ENV == "mainnet") {
+  WETH_ADDRESS_FINAL = WETH_ADDRESS;
+} else {
+  WETH_ADDRESS_FINAL = WETH_ADDRESS_GOERLI;
+}
 
 interface CreatePairDTO {
   marketAddress: string;
@@ -78,7 +85,7 @@ class UniswappyV2Pair {
 
   async getAllWETHPairAddresses() {
     return (
-      this.UniswappyV2Pair.find({ $or: [{ token0: { $eq: WETH_ADDRESS } }, { token1: { $eq: WETH_ADDRESS } }] }, { _id: 1, token0: 1, token1: 1 })
+      this.UniswappyV2Pair.find({ $or: [{ token0: { $eq: WETH_ADDRESS_FINAL } }, { token1: { $eq: WETH_ADDRESS_FINAL } }] }, { _id: 1, token0: 1, token1: 1 })
         .exec()
         // TODO remove any
         .then((pairs: Array<MinPairFields | any>) => {

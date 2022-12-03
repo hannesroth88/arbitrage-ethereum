@@ -2,7 +2,7 @@
 import * as _ from "lodash";
 import { BigNumber, FixedNumber, Contract, providers } from "ethers";
 import { UNISWAP_PAIR_ABI, UNISWAP_QUERY_ABI, ERC20_TOKEN_ABI } from "./abi";
-import { UNISWAP_LOOKUP_CONTRACT_ADDRESS, WETH_ADDRESS } from "./addresses";
+import { UNISWAP_LOOKUP_CONTRACT_ADDRESS, UNISWAP_LOOKUP_CONTRACT_ADDRESS_GOERLI, WETH_ADDRESS, WETH_ADDRESS_GOERLI } from "./addresses";
 import { CallDetails, EthMarket, MultipleCallData, TokenBalances } from "./EthMarket";
 import { ETHER, bigNumberToDecimal } from "./utils";
 import { MarketsByToken } from "./Arbitrage";
@@ -16,11 +16,23 @@ const UNISWAP_BATCH_SIZE = 1000;
 
 // Not necessary, slightly speeds up loading initialization when we know tokens are bad
 // Estimate gas will ensure we aren't submitting bad bundles, but bad tokens waste time
-const TOKEN_BLACKLIST = [
-  "0x9EA3b5b4EC044b70375236A281986106457b20EF",
-  "0x15874d65e649880c2614e7a480cb7c9A55787FF6",
-  "0x1A3496C18d558bd9C6C8f609E1B129f67AB08163",
-];
+
+let WETH_ADDRESS_FINAL: string;
+let UNISWAP_LOOKUP_CONTRACT_ADDRESS_FINAL: string;
+let TOKEN_BLACKLIST: string[];
+if (process.env.NODE_ENV == "mainnet") {
+  TOKEN_BLACKLIST = [
+    "0x9EA3b5b4EC044b70375236A281986106457b20EF",
+    "0x15874d65e649880c2614e7a480cb7c9A55787FF6",
+    "0x1A3496C18d558bd9C6C8f609E1B129f67AB08163",
+  ];
+  WETH_ADDRESS_FINAL = WETH_ADDRESS;
+  UNISWAP_LOOKUP_CONTRACT_ADDRESS_FINAL = UNISWAP_LOOKUP_CONTRACT_ADDRESS;
+} else {
+  TOKEN_BLACKLIST = [];
+  WETH_ADDRESS_FINAL = WETH_ADDRESS_GOERLI;
+  UNISWAP_LOOKUP_CONTRACT_ADDRESS_FINAL = UNISWAP_LOOKUP_CONTRACT_ADDRESS_GOERLI;
+}
 
 interface GroupedMarkets {
   marketsByToken: MarketsByToken;
@@ -29,7 +41,7 @@ interface GroupedMarkets {
 }
 
 export class UniswappyV2EthPair extends EthMarket {
-  static uniswapInterface = new Contract(WETH_ADDRESS, UNISWAP_PAIR_ABI);
+  static uniswapInterface = new Contract(WETH_ADDRESS_FINAL, UNISWAP_PAIR_ABI);
   private _tokenBalances: TokenBalances;
 
   constructor(marketAddress: string, tokens: Array<string>, protocol: string) {
@@ -56,9 +68,9 @@ export class UniswappyV2EthPair extends EthMarket {
     const marketAddress = pair[2];
     let tokenAddress: string;
 
-    if (pair[0] === WETH_ADDRESS) {
+    if (pair[0] === WETH_ADDRESS_FINAL) {
       tokenAddress = pair[1];
-    } else if (pair[1] === WETH_ADDRESS) {
+    } else if (pair[1] === WETH_ADDRESS_FINAL) {
       tokenAddress = pair[0];
     } else {
       return;
@@ -137,7 +149,7 @@ export class UniswappyV2EthPair extends EthMarket {
   // 2. For each pair in batch, store the token address (the other token must be WETH) and order of pair (WETH, LINK) vs (LINK, WETH)
   static async getUniswappyMarkets(provider: providers.JsonRpcProvider, factoryAddress: string): Promise<Array<UniswappyV2EthPair>> {
     console.log(`GET MARKETS FOR FACTORY ${factoryAddress}`);
-    const uniswapQuery = new Contract(UNISWAP_LOOKUP_CONTRACT_ADDRESS, UNISWAP_QUERY_ABI, provider);
+    const uniswapQuery = new Contract(UNISWAP_LOOKUP_CONTRACT_ADDRESS_FINAL, UNISWAP_QUERY_ABI, provider);
 
     const marketPairs = new Array<UniswappyV2EthPair>();
     const startingIndex = 0;
@@ -174,7 +186,7 @@ export class UniswappyV2EthPair extends EthMarket {
       .filter((pair) => {
         return !TOKEN_BLACKLIST.includes(pair.tokens[0]) && !TOKEN_BLACKLIST.includes(pair.tokens[1]);
       })
-      .groupBy((pair) => (pair.tokens[0] === WETH_ADDRESS ? pair.tokens[1] : pair.tokens[0]))
+      .groupBy((pair) => (pair.tokens[0] === WETH_ADDRESS_FINAL ? pair.tokens[1] : pair.tokens[0]))
       .value();
 
     // Convert to a form that we can pass to updateReserves
@@ -191,16 +203,16 @@ export class UniswappyV2EthPair extends EthMarket {
     const marketsByToken = _.chain(allMarketPairs)
       // Filter out pairs that have more than 5 WETH in reserves
       .filter((pair) => {
-        return pair.getBalance(WETH_ADDRESS).gt(ETHER.mul(3));
+        return pair.getBalance(WETH_ADDRESS_FINAL).gt(ETHER.mul(3));
       })
       // Group by the non-WETH token
-      .groupBy((pair) => (pair.tokens[0] === WETH_ADDRESS ? pair.tokens[1] : pair.tokens[0]))
+      .groupBy((pair) => (pair.tokens[0] === WETH_ADDRESS_FINAL ? pair.tokens[1] : pair.tokens[0]))
       // .filter(group => group.length > 1)
       .value();
 
     const filteredMarketPairs = _.chain(allMarketPairs)
       .filter((pair) => {
-        return pair.getBalance(WETH_ADDRESS).gt(ETHER.mul(3));
+        return pair.getBalance(WETH_ADDRESS_FINAL).gt(ETHER.mul(3));
       })
       .value();
 
@@ -221,7 +233,7 @@ export class UniswappyV2EthPair extends EthMarket {
   }
 
   static async updateReserves(provider: providers.JsonRpcProvider, allMarketPairs: Array<UniswappyV2EthPair>, blockNumber: number): Promise<void> {
-    const uniswapQuery = new Contract(UNISWAP_LOOKUP_CONTRACT_ADDRESS, UNISWAP_QUERY_ABI, provider);
+    const uniswapQuery = new Contract(UNISWAP_LOOKUP_CONTRACT_ADDRESS_FINAL, UNISWAP_QUERY_ABI, provider);
 
     const pairAddresses = allMarketPairs.map((marketPair) => marketPair.marketAddress);
     // console.log("Updating market reserves, count:", pairAddresses.length)
@@ -292,12 +304,12 @@ export class UniswappyV2EthPair extends EthMarket {
   }
 
   async getReservesRatioInWETH(): Promise<any> {
-    const tokenAddress = this.tokens[0] === WETH_ADDRESS ? this.tokens[1] : this.tokens[0];
+    const tokenAddress = this.tokens[0] === WETH_ADDRESS_FINAL ? this.tokens[1] : this.tokens[0];
 
     const token = await Token.getToken(tokenAddress);
     const tokenDecimals = token?.decimals;
     if (tokenDecimals) {
-      const _wethReserves = this._tokenBalances[WETH_ADDRESS];
+      const _wethReserves = this._tokenBalances[WETH_ADDRESS_FINAL];
       const _tokenReserves = this._tokenBalances[tokenAddress];
 
       // Normalize reserves w/ decimals
@@ -317,7 +329,7 @@ export class UniswappyV2EthPair extends EthMarket {
       // TODO :Get decimals for token.  WETH has 18 decimals
       return ratio;
     } else {
-      throw Error("no token decimals found")
+      throw Error("no token decimals found");
     }
   }
 

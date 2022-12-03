@@ -4,6 +4,6 @@ services:
     image: 'mongo:4.0.28-xenial'
     container_name: 'mongo_arb'
     volumes:
-      - ./data:/data/db
+      - ./data/${NODE_ENV}:/data/db
     ports:
       - 27018:27017

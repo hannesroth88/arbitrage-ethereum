@@ -1,6 +1,6 @@
 
 import { Arbitrage, getBestCrossedMarket } from "../src/Arbitrage"
-import { WETH_ADDRESS} from "../src/addresses"
+import { WETH_ADDRESS, WETH_ADDRESS_GOERLI} from "../src/addresses"
 import { UniswappyV2EthPair } from "../src/UniswappyV2EthPair";
 import { BigNumber } from "ethers";
 import { ETHER } from "../src/utils";
@@ -9,13 +9,19 @@ const MARKET_ADDRESS = "0x0000000000000000000000000000000000000001"
 const TOKEN_ADDRESS = "0x000000000000000000000000000000000000000a"
 const PROTOCOL_NAME = "TEST";
 
+let WETH_ADDRESS_FINAL: string;
+if (process.env.NODE_ENV == "mainnet") {
+  WETH_ADDRESS_FINAL = WETH_ADDRESS;
+} else {
+  WETH_ADDRESS_FINAL = WETH_ADDRESS_GOERLI;
+}
 
 describe('Arbitrage', function() {
   let groupedWethMarkets: Array<UniswappyV2EthPair>
   beforeEach(() => {
     groupedWethMarkets = [
-      new UniswappyV2EthPair(MARKET_ADDRESS, [TOKEN_ADDRESS, WETH_ADDRESS], PROTOCOL_NAME),
-      new UniswappyV2EthPair(MARKET_ADDRESS, [TOKEN_ADDRESS, WETH_ADDRESS], PROTOCOL_NAME),
+      new UniswappyV2EthPair(MARKET_ADDRESS, [TOKEN_ADDRESS, WETH_ADDRESS_FINAL], PROTOCOL_NAME),
+      new UniswappyV2EthPair(MARKET_ADDRESS, [TOKEN_ADDRESS, WETH_ADDRESS_FINAL], PROTOCOL_NAME),
     ]
   })
   it('Calculate Crossed Markets', function() {
